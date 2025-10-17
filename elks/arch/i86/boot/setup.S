@@ -1047,7 +1047,7 @@ continue:
 	and	$0xf000,%ax
 	jmp	memsize
 notfd1232:
-	xor	$2,%al		//means MFM512 
+	mov	$2,%al		//means MFM512 
 	mov	%al,%cs:MFM1024
 	mov	$0x9000,%ax	// boot_sect.S set fat bpb to 9000h though over 640kB(ex.Hireso98)
 #else
