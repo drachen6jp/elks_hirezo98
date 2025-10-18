@@ -23,7 +23,8 @@
 #define SECTOR_SIZE	1024
 #else
 #define SECTOR_SIZE	512
-#define MEMTOPSEG	0xA000		// 640K memory
+//#define MEMTOPSEG	0xA000		// 640K memory
+#define MEMTOPSEG	0x8000		// 512K memory
 #endif
 
 
@@ -644,15 +645,34 @@ memsz:
 	mov $0x501,%bx                  // 3 bit size - 1 in 128k of 0-1M mem range
 	mov %es:(%bx),%cl
 	mov $hirezo,%bx
+	mov $0x8,%ch
+	test %ch,%cl
+	jne memorywindow
+memsize_2:
 	mov %cl,%cs:(%bx)
 	and $7,%cl
 	inc %cl
 	mov $128,%al
 	mul %cl
+PC_98XA:
 	pop %bx
 	pop %cx
 	ret
 
+memorywindow:	
+	mov $0x200,%ax		//512kB
+	mov $0x20,%ch
+	test %ch,%cl
+	je PC_98XA
+	push %dx
+	mov $0x91,%dx
+	mov $0x8,%al
+	out %al,%dx
+	mov $0x93,%dx
+	mov $0xa,%al
+	out %al,%dx
+	pop %dx
+	jmp memsize_2
 #endif
 
 
