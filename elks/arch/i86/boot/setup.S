@@ -1049,7 +1049,7 @@ continue:
 notfd1232:
 	mov	$2,%al		//means MFM512 
 	mov	%al,%cs:MFM1024
-	mov	$0x9000,%ax	// boot_sect.S set fat bpb to 9000h though over 640kB(ex.Hireso98)
+	mov	$0x7000,%ax	// boot_sect.S set fat bpb to 7000h though over 512kB(ex.Hireso98)
 #else
 	mov	mem_kbytes,%ax	// Kbytes of memory
 	mov	$6,%cl		// to paras
@@ -1425,15 +1425,35 @@ arch_get_mem:
 	mov %ax,%es
 	mov $0x501,%bx                  // 3 bit size - 1 in 128k of 0-1M mem range
 	mov %es:(%bx),%cl
+	mov $0x8,%ch
+	test %ch,%cl
+	jne memwindow
+memsize_:
 	and $7,%cl
 	inc %cl
 	mov $128,%al
 	mul %cl
+PC98XA:
 	pop %bx
 	pop %cx
 	pop %es
 #endif
 	ret
+
+memwindow:
+	mov $0x200,%ax	//512kB
+	mov $0x20,%ch
+	test %ch,%cl
+	je PC98XA
+	push %dx
+	mov $0x91,%dx
+	mov $0x8,%al
+	out %al,%dx
+	mov $0x93,%dx
+	mov $0xa,%al
+	out %al,%dx
+	pop %dx
+	jmp memsize_
 
 // Set INITSEG values for PC98 architecture
 // currently hard-coded in config.h
@@ -1508,7 +1528,8 @@ xor %di,%di
 mov %di,%es
 mov $0x501,%bx
    mov $0xe000,%dx
-test $8,%es:(%bx)
+mov $8,%di
+test %di,%es:(%bx)
 jne HiTvram
    mov $0xa000,%dx
 HiTvram:
